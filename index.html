@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f4ef">
+<meta name="description" content="Grow specialized cells, test their jobs, and discover how cells build an organism. An original interactive life science game for grade 7.">
+<title>Cellcraft — Differentiation Lab</title>
+<link rel="stylesheet" href="style.css">
+<script src="cells.js" defer></script><script src="worksheet.js" defer></script><script src="journal.js" defer></script><script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to activity</a>
+<header class="topbar">
+<a class="brand" href="#worksheet" aria-label="Cellcraft home" id="homeLink"><span class="brand-mark" aria-hidden="true"><i></i><b></b></span><span>cellcraft<span class="brand-sub">DIFFERENTIATION LAB</span></span></a>
+<nav aria-label="Main navigation" id="mainNav">
+<button data-view="worksheet" class="nav-item active"><span aria-hidden="true">▧</span> Worksheet</button>
+<button data-view="missions" class="nav-item"><span aria-hidden="true">◉</span> Cell missions</button>
+<button data-view="explore" class="nav-item"><span aria-hidden="true">✳</span> Free lab</button>
+<button data-view="tower" class="nav-item"><span aria-hidden="true">▤</span> Tissue tower</button>
+<button data-view="guide" class="nav-item"><span aria-hidden="true">▧</span> Field guide</button>
+</nav>
+<div class="header-tools"><span class="xp-pill" id="xpPill">0 XP</span><button class="icon-btn" id="themeBtn" title="Switch to dark mode" aria-label="Switch to dark mode">☾</button><button class="icon-btn" id="fullBtn" title="Full screen" aria-label="Full screen">⛶</button><button class="icon-btn" id="helpBtn" title="How to play" aria-label="How to play">?</button></div>
+</header>
+<div class="app-layout">
+<aside class="sidebar" id="sidebar"></aside>
+<main id="main" tabindex="-1"></main>
+</div>
+<footer><span><span class="status-dot"></span> <span id="saveStatus">Progress saves on this device</span></span><button class="text-btn" id="exportBtn">Download progress ↗</button><button class="text-btn" id="importBtn">Load progress</button><button class="text-btn" id="teacherBtn">Teacher notes</button><input type="file" id="importFile" accept="application/json,.json" hidden></footer>
+<dialog id="modal"><div class="modal-head"><span class="eyebrow">CELLCRAFT LAB</span><button class="icon-btn" id="closeModal" aria-label="Close dialog">×</button></div><div id="modalContent"></div></dialog>
+<div class="toast" id="toast" role="status"></div>
+</body></html>
