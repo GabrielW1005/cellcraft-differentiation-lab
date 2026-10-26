@@ -1,31 +1,10 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f5f4ef">
-<meta name="description" content="Grow specialized cells, test their jobs, and discover how cells build an organism. An original interactive life science game for grade 7.">
-<title>Cellcraft — Differentiation Lab</title>
-<link rel="stylesheet" href="style.css">
-<script src="cells.js" defer></script><script src="worksheet.js" defer></script><script src="journal.js" defer></script><script src="app.js" defer></script>
-</head>
-<body>
-<a class="skip" href="#main">Skip to activity</a>
-<header class="topbar">
-<a class="brand" href="#worksheet" aria-label="Cellcraft home" id="homeLink"><span class="brand-mark" aria-hidden="true"><i></i><b></b></span><span>cellcraft<span class="brand-sub">DIFFERENTIATION LAB</span></span></a>
-<nav aria-label="Main navigation" id="mainNav">
-<button data-view="worksheet" class="nav-item active"><span aria-hidden="true">▧</span> Worksheet</button>
-<button data-view="missions" class="nav-item"><span aria-hidden="true">◉</span> Cell missions</button>
-<button data-view="explore" class="nav-item"><span aria-hidden="true">✳</span> Free lab</button>
-<button data-view="tower" class="nav-item"><span aria-hidden="true">▤</span> Tissue tower</button>
-<button data-view="guide" class="nav-item"><span aria-hidden="true">▧</span> Field guide</button>
-</nav>
-<div class="header-tools"><span class="xp-pill" id="xpPill">0 XP</span><button class="icon-btn" id="themeBtn" title="Switch to dark mode" aria-label="Switch to dark mode">☾</button><button class="icon-btn" id="fullBtn" title="Full screen" aria-label="Full screen">⛶</button><button class="icon-btn" id="helpBtn" title="How to play" aria-label="How to play">?</button></div>
-</header>
-<div class="app-layout">
-<aside class="sidebar" id="sidebar"></aside>
-<main id="main" tabindex="-1"></main>
-</div>
-<footer><span><span class="status-dot"></span> <span id="saveStatus">Progress saves on this device</span></span><button class="text-btn" id="exportBtn">Download progress ↗</button><button class="text-btn" id="importBtn">Load progress</button><button class="text-btn" id="teacherBtn">Teacher notes</button><input type="file" id="importFile" accept="application/json,.json" hidden></footer>
-<dialog id="modal"><div class="modal-head"><span class="eyebrow">CELLCRAFT LAB</span><button class="icon-btn" id="closeModal" aria-label="Close dialog">×</button></div><div id="modalContent"></div></dialog>
-<div class="toast" id="toast" role="status"></div>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101d2e"><meta name="description" content="A 2D microscopic action game. Engulf bacteria, deliver oxygen, send nerve signals and grow a root hair. Original grade 7 cell biology adventures."><title>Cellcraft · Micro Missions</title><link rel="stylesheet" href="style.css"><script src="science.js" defer></script><script src="render.js" defer></script><script src="engine.js" defer></script><script src="game.js" defer></script></head><body>
+<canvas id="world" tabindex="0" aria-label="Cellcraft 2D game. Keyboard: WASD or arrows to move, Space for cell action, P to pause. Use the mission instructions for each specialist."></canvas>
+<header><button id="home" class="brand" aria-label="Open mission menu"><span class="brand-icon">◉</span><span>cellcraft<small>MICRO MISSIONS</small></span></button><div id="missionLabel" class="mission-label">A SMALL WORLD. A BIG ADVENTURE.</div><div class="header-buttons"><button id="scienceBtn" title="Science and controls" aria-label="Science and controls">?</button><button id="soundBtn" aria-label="Turn sound on" title="Turn sound on">♪<span class="muted-line">/</span></button><button id="pauseBtn" aria-label="Pause game" title="Pause (P)">Ⅱ</button><button id="fullBtn" aria-label="Full screen" title="Full screen">⛶</button></div></header>
+<div id="hud" hidden><div class="hud-box"><span id="goalLabel">BACTERIA CLEARED</span><strong id="goalValue">0 / 10</strong><div class="track"><i id="goalBar"></i></div></div><div class="hud-box secondary-hud"><span id="resourceLabel">CELL ENERGY</span><strong id="resourceValue">100%</strong><div class="track"><i id="resourceBar"></i></div><small id="resourceDetail"></small></div><div class="hud-score"><span>SCORE</span><strong id="score">0</strong><small id="timer">0:00</small></div></div>
+<div id="tip" hidden><span class="tip-pip"></span><span id="tipText"></span></div>
+<div id="controls" hidden><div id="stick" aria-label="Drag to move" role="group"><span id="stickKnob"></span><i>MOVE</i></div><button id="action"><span id="actionIcon">◎</span><strong id="actionLabel">ENGULF</strong><small id="actionHint">HOLD SPACE</small></button><div class="key-hint" id="keyHint">WASD / ARROWS · MOVE</div></div>
+<div id="toast" role="status"></div><div id="overlay"></div>
+<dialog id="scienceModal" aria-labelledby="scienceTitle"><button class="close" id="closeScience" aria-label="Close science notes">×</button><div id="scienceContent"></div></dialog>
+<div id="announce" class="sr-only" aria-live="polite"></div>
 </body></html>
