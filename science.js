@@ -8,20 +8,23 @@ window.MISSIONS = [
     cell: 'Macrophage',
     tag: 'ENGULF & DEFEND',
     color: '#b89bff',
-    summary: 'Crawl through tissue and surround invading bacteria with your cell membrane.',
+    summary: 'Defend healthy tissue through 3 waves of invading bacteria. Catch fast swimmers and engulf dividing cells before their numbers grow.',
     precursor: 'A new monocyte can develop into a macrophage. This is a fresh immune cell, not a different mature cell switching jobs.',
-    structure: 'A flexible cell membrane forms extensions called pseudopods. Internal digestive compartments help break down engulfed material.',
+    structure: 'A flexible cell membrane forms extensions called pseudopods. Compartments called lysosomes supply substances that help digest engulfed bacteria.',
     job: 'Engulf and break down invading bacteria and cell debris.',
-    controls: 'Move with WASD, arrow keys, or dragging. Hold Space or Action beside a bacterium to stop and engulf it.',
-    goal: 'Engulf 10 invading bacteria while moving around healthy tissue cells.',
-    modelNote: 'Movement and digestion are sped up. Real macrophages respond to chemical signals; your controls guide a model. All living cells use energy.',
+    controls: 'Move with WASD, arrow keys, or dragging. Hold Space or Engulf beside a bacterium until the membrane seals. Hold Shift or Quick crawl while moving to crawl faster; release it to recover energy.',
+    goal: 'Clear all bacteria in 3 waves before time or tissue integrity runs out. Protect glowing tissue and stop dividing bacteria early.',
+    modelNote: 'Waves represent repeated bacterial entry. Speeds, division times, tissue damage, and the energy meter are game rules. Quick crawl models faster crawling. Swimmer and divider are gameplay roles, not scientific categories: both can reproduce in suitable conditions. Bacteria respond to their environment; they do not plan attacks.',
     discovery: [
-      'Phagocytosis means surrounding and engulfing material.',
-      'The membrane seals the bacterium inside a vesicle called a phagosome. Digestive compartments then help break it down.',
-      'Macrophages defend tissues; engulfing bacteria does not give them the bacteria’s powers or DNA instructions.'
+      'In phagocytosis, pseudopods surround a bacterium. The membrane seals it into a phagosome; lysosomes help digest it.',
+      'Some bacteria swim using rotating flagella. Bacteria commonly reproduce by binary fission: one cell grows, copies its DNA, and divides into two.',
+      'These targets model harmful invaders. Many bacteria are harmless or helpful. Macrophages use energy to move and engulf; they do not gain powers from captured bacteria.'
     ],
     sources: [
       { label: 'OpenStax: Phagocytosis', url: 'https://openstax.org/books/microbiology/pages/17-4-pathogen-recognition-and-phagocytosis' },
+      { label: 'OpenStax: Bacterial structures and movement', url: 'https://openstax.org/books/microbiology/pages/3-3-unique-characteristics-of-prokaryotic-cells' },
+      { label: 'OpenStax: Binary fission', url: 'https://openstax.org/books/microbiology/pages/9-1-how-microbes-grow' },
+      { label: 'OpenStax: Infection and tissue damage', url: 'https://openstax.org/books/microbiology/pages/15-2-how-pathogens-cause-disease' },
       { label: 'NIH: Cell differentiation', url: 'https://stemcells.nih.gov/info/basics/stc-basics' }
     ]
   },

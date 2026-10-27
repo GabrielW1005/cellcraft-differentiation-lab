@@ -44,7 +44,7 @@
     const nodes=[];
     for(let i=0;i<44;i++){
       const th=i/44*TAU;
-      let rad=r*(1+.075*Math.sin(th*3+t*1.3)+.045*Math.cos(th*5-t*.9)+.06*Math.cos((th-a)*2));
+      let rad=r*(1+.075*Math.sin(th*3+t*1.3)+.045*Math.cos(th*5-t*.9)+(.06+(p.boosting?.07:0))*Math.cos((th-a)*2));
       if(eng){let d=Math.atan2(Math.sin(th-targetA),Math.cos(th-targetA));const broad=Math.exp(-d*d/0.22);const reach=Math.max(0,targetD-r+12);rad+=reach*(.3+.7*ep)*broad;
         // Two raised lobes form the visible pseudopod arms around the fixed target.
         const spread=.33*(1-ep*.4),upper=Math.exp(-Math.pow((d-spread)/.16,2)),lower=Math.exp(-Math.pow((d+spread)/.16,2));
@@ -75,16 +75,36 @@
     c.restore();
   }
   function bacterium(c,b,t){
-    c.save();c.translate(b.x,b.y);c.rotate(b.angle||0);const r=b.r||9,rod=b.kind!=='coccus';
-    c.strokeStyle=b.flash?'#fff7b5':'#88a596';c.fillStyle=b.flash?'#ffe1a3':'#b7cf98';c.lineWidth=1.7;
-    if(rod){rr(c,-r*1.25,-r*.58,r*2.5,r*1.16,r*.58);c.fill();c.stroke();c.strokeStyle='#6d8c66';c.lineWidth=1.15;c.beginPath();c.moveTo(-r*.6,-r*.08);c.bezierCurveTo(-r*.3,-r*.35,r*.2,r*.35,r*.6,-r*.08);c.stroke();
-      c.strokeStyle='#9db989';c.beginPath();c.moveTo(r*1.2,0);c.bezierCurveTo(r*1.75,r*.6+Math.sin(t*4)*r*.25,r*2.1,-r*.6,r*2.6,0);c.stroke();
-    }else{circle(c,0,0,r,b.flash?'#ffe1a3':'#b7cf98','#88a596',1.6);circle(c,-r*.17,-r*.12,r*.29,'#859e70');}
+    c.save();c.translate(b.x,b.y);c.rotate(b.angle||0);
+    const r=b.r||9,swimmer=b.role==='swimmer',divider=b.role==='divider',rod=swimmer||b.kind!=='coccus';
+    const progress=divider&&b.canDivide?clamp(1-(b.divisionLeft||0)/(b.divisionTotal||1),0,1):0;
+    const pinch=clamp((progress-.65)/.35,0,1),threat=clamp(b.threat||0,0,1);
+    const fill=b.flash?'#ffe1a3':swimmer?'#a2d5e6':divider?'#efb68d':'#b7cf98';
+    const border=b.flash?'#fff7b5':swimmer?'#5d9fbb':divider?'#c58369':'#88a596';
+    // The tail is a flagellum; the body remains the collision target.
+    if(swimmer){c.strokeStyle='#8cbfd8';c.lineWidth=1.8;c.beginPath();c.moveTo(-r*1.15,0);c.bezierCurveTo(-r*1.7,r*.65*Math.sin(t*7),-r*2.1,-r*.65*Math.sin(t*7+.8),-r*2.8,Math.sin(t*7+1.8)*r*.2);c.stroke();}
+    c.fillStyle=fill;c.strokeStyle=border;c.lineWidth=1.8;
+    if(divider&&pinch>0){
+      // A single continuous envelope constricts before two daughter cells separate.
+      const rx=rod?r*1.25:r,ry=rod?r*.62:r*.84,waist=ry*(1-pinch*.74);
+      c.beginPath();c.moveTo(-rx,0);
+      c.bezierCurveTo(-rx,-ry*1.2,-rx*.32,-ry*1.15,0,-waist);
+      c.bezierCurveTo(rx*.32,-ry*1.15,rx,-ry*1.2,rx,0);
+      c.bezierCurveTo(rx,ry*1.2,rx*.32,ry*1.15,0,waist);
+      c.bezierCurveTo(-rx*.32,ry*1.15,-rx,ry*1.2,-rx,0);c.closePath();c.fill();c.stroke();
+    }else if(rod){rr(c,-r*1.25,-r*.58,r*2.5,r*1.16,r*.58);c.fill();c.stroke();}
+    else circle(c,0,0,r,fill,border,1.8);
+    // DNA is a loose strand in the cytoplasm: bacteria have no nucleus.
+    c.strokeStyle=swimmer?'#477f99':divider?'#a56c55':'#6d8c66';c.lineWidth=1.15;c.globalAlpha=.8;
+    const copies=divider&&progress>.45?2:1;
+    for(let k=0;k<copies;k++){const x=copies===2?(k?1:-1)*r*.43:0,w=copies===2?r*.3:r*.55;c.beginPath();c.moveTo(x-w,-r*.1);c.bezierCurveTo(x-w*.4,-r*.4,x+w*.3,r*.34,x+w,-r*.05);c.bezierCurveTo(x+w*.6,r*.27,x-w*.1,-r*.21,x-w*.55,r*.14);c.stroke();}
+    c.globalAlpha=1;
+    if(threat>.1){c.strokeStyle='#ffc2a3';c.lineWidth=1.5;c.globalAlpha=threat*.75;c.beginPath();c.arc(0,0,r*1.4,-Math.PI*.5,-Math.PI*.5+TAU*threat);c.stroke();}
     c.restore();
   }
   function tissueCell(c,o,t){
     c.save();const r=o.r||44,n=7,pts=[];for(let i=0;i<n;i++){const th=i/n*TAU;const s=1+.07*Math.sin(i*7+(o.x||0)*.02);pts.push({x:o.x+Math.cos(th)*r*s,y:o.y+Math.sin(th)*r*s});}
-    smooth(c,pts);c.fillStyle=o.color||'#895a69';c.fill();c.strokeStyle='#d79ba655';c.lineWidth=3;c.stroke();circle(c,o.x-r*.08,o.y+r*.04,r*.28,'#615478','#bea4c066',1.5);circle(c,o.x-r*.12,o.y,r*.08,'#a894b4');
+    smooth(c,pts);c.fillStyle=o.color||'#895a69';c.fill();c.strokeStyle='#d79ba655';c.lineWidth=3;c.stroke();if(o.damageFlash>0){c.save();c.globalAlpha=clamp(o.damageFlash,0,1)*.3;smooth(c,pts);c.fillStyle='#f5a887';c.fill();c.strokeStyle='#ffc9a9';c.lineWidth=4;c.stroke();c.restore();}circle(c,o.x-r*.08,o.y+r*.04,r*.28,'#615478','#bea4c066',1.5);circle(c,o.x-r*.12,o.y,r*.08,'#a894b4');
     for(let i=0;i<4;i++){const a=i*1.7;circle(c,o.x+Math.cos(a)*r*.62,o.y+Math.sin(a)*r*.62,2,'#d4a3ae55');}
     c.restore();
   }
