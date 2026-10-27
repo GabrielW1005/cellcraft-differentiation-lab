@@ -70,8 +70,8 @@
     c.shadowColor='#ed786c28';c.shadowBlur=14;c.beginPath();c.ellipse(0,0,r,r*.72,0,0,TAU);c.fillStyle=pal.coral;c.fill();c.shadowBlur=0;c.strokeStyle='#ffb9a2';c.lineWidth=2;c.stroke();
     c.beginPath();c.ellipse(0,-r*.04,r*.58,r*.36,0,0,TAU);c.fillStyle='#f8bb9d';c.fill();c.beginPath();c.ellipse(0,-r*.06,r*.38,r*.2,0,0,TAU);c.fillStyle='#e78f80';c.fill();
     c.beginPath();c.ellipse(0,r*.1,r*.76,r*.49,0,.2,Math.PI-.2);c.strokeStyle=pal.coralDark;c.globalAlpha=.45;c.lineWidth=3;c.stroke();c.globalAlpha=1;
-    const n=Math.min(12,Math.max(0,Math.round(p.oxygen||0)));
-    for(let i=0;i<n;i++){const a=i/12*TAU,rrr=r*.78;circle(c,Math.cos(a)*rrr,Math.sin(a)*rrr*.58,Math.max(1.8,r*.075),'#9fe0ff');}
+    const capacity=p.oxygenCapacity||12,n=Math.min(capacity,Math.max(0,Math.round(p.oxygen||0)));
+    for(let i=0;i<n;i++){const a=i/capacity*TAU,rrr=r*.78;circle(c,Math.cos(a)*rrr,Math.sin(a)*rrr*.58,Math.max(1.8,r*.075),'#9fe0ff');}
     c.restore();
   }
   function bacterium(c,b,t){

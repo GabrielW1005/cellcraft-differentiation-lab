@@ -39,7 +39,7 @@ window.MISSIONS = [
     structure: 'A flexible, indented disc carries hemoglobin, a protein that binds oxygen.',
     job: 'Transport oxygen from the lungs to body tissues while staying inside blood vessels.',
     controls: 'The current carries you forward. Use W/S, up/down, or dragging to guide the model vertically. Hold Space or Action to model squeezing through a narrow passage.',
-    goal: 'Load oxygen near the lungs and deliver it at all 3 tissue targets.',
+    goal: 'Load oxygen near the lungs and supply every tissue target shown for this level.',
     modelNote: 'Real red blood cells do not steer or squeeze on command: blood flow carries and deforms them. Oxygen loading and unloading happen by diffusion. Targets and molecule counts are game symbols.',
     discovery: [
       'Oxygen diffuses into blood near the lungs and binds to hemoglobin. Some oxygen is released near tissues that need it.',
@@ -62,7 +62,7 @@ window.MISSIONS = [
     structure: 'Branching connections receive signals. A long extension called an axon carries an electrical signal toward its endings.',
     job: 'Receive information and communicate with other cells using electrical and chemical signals.',
     controls: 'Press Space or Action when the incoming cue reaches the ring. Let the neuron reset before the next transmission.',
-    goal: 'Complete 8 successful signal transmissions.',
+    goal: 'Complete this level’s goal of successful signal transmissions.',
     modelNote: 'The neuron stays in place. The glow represents a changing electrical state along its membrane, not one particle racing through the cell. The timing challenge and reset period are simplified.',
     discovery: [
       'An action potential is an electrical change that spreads along the axon membrane.',
@@ -85,7 +85,7 @@ window.MISSIONS = [
     structure: 'A long, thin extension increases the membrane area in contact with soil water.',
     job: 'Absorb water and mineral nutrients from the soil.',
     controls: 'Hold Space or Action to grow. Use W/S, up/down, or aim ahead with the pointer to bend the growing tip as it extends forward. Water enters automatically where the existing hair contacts moist soil.',
-    goal: 'Reach 100 water units, a game score rather than a real biological measurement.',
+    goal: 'Reach this level’s water goal. Water units are a game score, not a real biological measurement.',
     modelNote: 'The cell remains anchored, and only one extension grows. Your steering models growth direction; real cells respond to biological conditions. Water uptake is passive osmosis. Mineral-ion uptake uses transport proteins and is not simulated in this mission.',
     discovery: [
       'A root hair increases surface area, giving soil water more membrane to cross.',
