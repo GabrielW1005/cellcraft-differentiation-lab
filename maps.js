@@ -58,7 +58,7 @@
    c.save();c.globalAlpha=.045;c.fillStyle=r.color||palette[0];c.beginPath();c.ellipse(r.x,r.y,radius,radius*.68,0,0,TAU);c.fill();c.globalAlpha=1;
    const lx=r.x,ly=Math.max(130,r.y-radius*.68-20);
    // Headings are region names, not claims that the tissue has literal game sectors.
-   if(inside(v,lx,ly,120)){
+   if(inside(v,lx,ly,120)&&!(g.mode==='signal'&&(i===0||i===g.regions.length-1))){
     c.strokeStyle=palette[1]+'40';c.lineWidth=1;c.beginPath();c.moveTo(lx-40,ly-15);c.lineTo(lx+40,ly-15);c.stroke();
     text(c,String(i+1).padStart(2,'0')+'  '+String(r.name||'REGION').toUpperCase(),lx,ly,palette[1],10);
    }
