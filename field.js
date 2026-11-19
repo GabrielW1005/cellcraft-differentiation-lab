@@ -34,6 +34,9 @@ let toastTimer = 0;
 let dirty = true;
 let lastHint = '';
 let pointer = null;
+let saveTools;
+let checkpointAnswered = false;
+let progressDialogOpen = false;
 
 function seeded(num) {
   const seed = Math.sin(num * 192.293 + 72.17) * 19299.35;
@@ -110,6 +113,7 @@ function start() {
 function openCourse(index, play = false) {
   missionIndex = index;
   state = createCourse(index);
+  checkpointAnswered = false;
   camera = 0;
   byId('toast').classList.remove('show');
   const mission = currentMission();
@@ -120,13 +124,17 @@ function openCourse(index, play = false) {
   updateMissionButtons();
   if (play) {
     start();
+    saveTools?.saveNow();
     return;
   }
   setMode('ready');
   openCover(`<p class="eyebrow">${mission.precursor}</p><h3>${mission.course}</h3>
     <p class="cover-copy">Swim through the course. Collect a developmental signal and two gene-activity markers, then use your specialist’s structures to finish the job.</p>
     <div class="cover-buttons"><button class="primary" id="start-course" type="button">Play mission →</button></div>`);
-  byId('start-course').onclick = start;
+  byId('start-course').onclick = () => {
+    start();
+    saveTools?.saveNow();
+  };
 }
 
 function updateMissionButtons() {
@@ -139,16 +147,20 @@ function updateMissionButtons() {
     </button>`).join('');
 }
 
+function showPause(restored = false) {
+  setMode('pause');
+  openCover(`<p class="eyebrow">${currentMission().course}</p><h3>${restored ? 'Saved mission restored' : 'Paused'}</h3>
+    <p class="cover-copy">Drag on the field or hold the on-screen arrows to swim. You can also use WASD, Space to dash, and E to use your specialty.</p>
+    <div class="cover-buttons"><button class="primary" id="resume-course" type="button">Resume →</button></div>`, !restored);
+  byId('resume-course').onclick = togglePause;
+}
+
 function togglePause() {
   if (mode === 'pause') {
     setMode('play');
     canvas.focus({ preventScroll: true });
   } else if (mode === 'play') {
-    setMode('pause');
-    openCover(`<p class="eyebrow">${currentMission().course}</p><h3>Paused</h3>
-      <p class="cover-copy">Arrow keys or WASD to swim, Space to dash, and E to use your specialty.</p>
-      <div class="cover-buttons"><button class="primary" id="resume-course" type="button">Resume →</button></div>`, true);
-    byId('resume-course').onclick = togglePause;
+    showPause();
   }
 }
 
@@ -160,13 +172,32 @@ function notify(copy) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-function finish() {
+function finish(restoredAnswer = false, focus = true) {
   setMode('question');
   const mission = currentMission();
   openCover(`<p class="eyebrow">Specialist task complete</p><h3>${mission.question}</h3>
     <div class="choices">${mission.answers.map((answer, i) => `<button type="button" data-answer="${i}">${answer}</button>`).join('')}</div>
-    <p id="question-feedback" class="explain" role="status"></p><div class="cover-buttons" id="result-buttons" hidden></div>`, true);
+    <p id="question-feedback" class="explain" role="status"></p><div class="cover-buttons" id="result-buttons" hidden></div>`, focus);
   const buttons = [...document.querySelectorAll('[data-answer]')];
+  function showAnswer(button, save) {
+    checkpointAnswered = true;
+    byId('question-feedback').textContent = mission.science;
+    buttons.forEach(b => { b.disabled = true; });
+    button.classList.add('correct');
+    records[mission.id] = { complete: true };
+    updateMissionButtons();
+    const controls = byId('result-buttons');
+    controls.hidden = false;
+    const next = (missionIndex + 1) % missions.length;
+    controls.innerHTML = `<button type="button" class="primary" id="next-course">${next ? 'Next mission →' : 'Play first mission →'}</button>
+      <button type="button" class="secondary" id="replay-course">Replay</button>`;
+    byId('next-course').onclick = () => openCourse(next, true);
+    byId('replay-course').onclick = () => openCourse(missionIndex, true);
+    if (save) {
+      saveTools?.saveNow();
+      byId('next-course').focus({ preventScroll: true });
+    }
+  }
   for (const button of buttons) {
     button.onclick = () => {
       if (Number(button.dataset.answer) !== mission.correct) {
@@ -174,22 +205,64 @@ function finish() {
         byId('question-feedback').textContent = 'Try again. Think about the structure you just used.';
         return;
       }
-      byId('question-feedback').textContent = mission.science;
-      buttons.forEach(b => { b.disabled = true; });
-      button.classList.add('correct');
-      records[mission.id] = { complete: true };
-      try { localStorage.setItem(store, JSON.stringify(records)); } catch {}
-      updateMissionButtons();
-      const controls = byId('result-buttons');
-      controls.hidden = false;
-      const next = (missionIndex + 1) % missions.length;
-      controls.innerHTML = `<button type="button" class="primary" id="next-course">${next ? 'Next mission →' : 'Play first mission →'}</button>
-        <button type="button" class="secondary" id="replay-course">Replay</button>`;
-      byId('next-course').onclick = () => openCourse(next, true);
-      byId('replay-course').onclick = () => openCourse(missionIndex, true);
-      byId('next-course').focus({ preventScroll: true });
+      showAnswer(button, true);
     };
   }
+  if (restoredAnswer) showAnswer(buttons[mission.correct], false);
+}
+
+function snapshot() {
+  const p = state.player;
+  return {
+    version: 1,
+    mission: currentMission().id,
+    phase: state.task === currentMission().tasks.length ? 'question' : mode === 'ready' ? 'ready' : 'active',
+    answered: checkpointAnswered,
+    practice: byId('practice').checked,
+    completed: missions.filter(m => records[m.id]?.complete).map(m => m.id),
+    markers: state.collected,
+    tasks: state.task,
+    elapsed: Math.round(state.time * 10) / 10,
+    player: {
+      x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10,
+      health: p.health, boost: Math.round(p.boost * 100) / 100, face: p.face,
+    },
+    used: state.supplies.map(supply => supply.used === true),
+  };
+}
+
+function restore(data) {
+  if (!data || data.version !== 1 || !['ready', 'active', 'question'].includes(data.phase)) return false;
+  const index = missions.findIndex(m => m.id === data.mission);
+  if (index === -1 || !Array.isArray(data.completed) || data.completed.some(id => !missions.some(m => m.id === id))) return false;
+  const mission = missions[index];
+  const draft = createCourse(index);
+  const bounded = (value, min, max) => Number.isFinite(value) && value >= min && value <= max;
+  const validCount = (value, count) => Number.isInteger(value) && bounded(value, 0, count);
+  const p = data.player;
+  if (typeof data.answered !== 'boolean' || typeof data.practice !== 'boolean') return false;
+  if (!validCount(data.markers, draft.genes.length) || !validCount(data.tasks, mission.tasks.length)) return false;
+  if (data.tasks && data.markers !== draft.genes.length) return false;
+  if ((data.phase === 'question') !== (data.tasks === mission.tasks.length)) return false;
+  if (data.answered && (data.phase !== 'question' || !data.completed.includes(mission.id))) return false;
+  if (data.phase === 'ready' && (data.markers || data.tasks)) return false;
+  if (!p || !bounded(p.x, 42, world.width - 42) || !bounded(p.y, 71, world.height - 38)) return false;
+  if (!validCount(p.health, maxHealth) || p.health < 1 || !bounded(p.boost, 0, 1) || ![-1, 1].includes(p.face)) return false;
+  if (!Number.isFinite(data.elapsed) || data.elapsed < 0) return false;
+  if (!Array.isArray(data.used) || data.used.length !== draft.supplies.length || data.used.some(value => typeof value !== 'boolean')) return false;
+
+  records = Object.fromEntries(data.completed.map(id => [id, { complete: true }]));
+  byId('practice').checked = data.practice;
+  openCourse(index);
+  Object.assign(state.player, { x: p.x, y: p.y, health: p.health, boost: p.boost, face: p.face });
+  state.collected = data.markers;
+  state.task = data.tasks;
+  state.time = data.elapsed;
+  state.supplies.forEach((supply, i) => { supply.used = data.used[i]; });
+  camera = clamp(p.x - viewWidth * .39, 0, Math.max(0, world.width - viewWidth));
+  if (data.phase === 'question') finish(data.answered, false);
+  else if (data.phase === 'active') showPause(true);
+  return true;
 }
 
 function objective() {
@@ -235,6 +308,7 @@ function useSpecialty() {
   notify(target.done);
   dirty = true;
   if (state.task >= currentMission().tasks.length) state.effect.ending = true;
+  saveTools?.saveNow();
 }
 
 function movement() {
@@ -277,7 +351,7 @@ function respawn() {
   const checkpoint = state.collected ? state.genes[state.collected - 1] : { x: 139, y: 221 };
   p.x = Math.max(75, checkpoint.x - 40);
   p.y = checkpoint.y;
-  camera = clamp(p.x - viewWidth * .42, 0, world.width - viewWidth);
+  camera = clamp(p.x - viewWidth * .42, 0, Math.max(0, world.width - viewWidth));
   notify('Cell restored at a checkpoint. Collected markers and finished tasks stay recorded.');
 }
 
@@ -312,6 +386,7 @@ function advance(dt) {
     } else {
       notify(gene.type === 'signal' ? 'The precursor received a developmental signal.' : `Marker collected: ${gene.label}.`);
     }
+    saveTools?.saveNow();
   }
 
   for (const supply of state.supplies) {
@@ -605,13 +680,14 @@ function loop(now) {
   const dt = lastFrame ? Math.min(.05, (now - lastFrame) / 1000) : 0;
   lastFrame = now;
   clock += dt;
-  if (mode === 'play') advance(dt);
+  if (mode === 'play' && !progressDialogOpen && !fieldDialogOpen()) advance(dt);
   const target = clamp(state.player.x - viewWidth * .39, 0, Math.max(0, world.width - viewWidth));
   camera += (target - camera) * Math.min(1, dt * 8);
   if (dirty) updateTrack();
   const hint = goalHint();
   if (lastHint !== hint) {
     byId('hint').textContent = hint;
+    byId('compact-hint').textContent = hint;
     lastHint = hint;
   }
   byId('dash-meter').style.width = `${100 * state.player.boost}%`;
@@ -622,22 +698,32 @@ function loop(now) {
 byId('mission-list').onclick = e => {
   const button = e.target.closest('[data-course]');
   if (!button) return;
-  openCourse(Number(button.dataset.course), true);
-  canvas.scrollIntoView({ block: 'nearest' });
+  const selected = Number(button.dataset.course);
+  byId('missions-dialog').close();
+  if (selected === missionIndex && mode === 'play') canvas.focus({ preventScroll: true });
+  else openCourse(selected, true);
 };
 byId('pause').onclick = togglePause;
 byId('restart').onclick = () => openCourse(missionIndex, true);
-byId('fullscreen').onclick = async () => {
-  try {
-    if (document.fullscreenElement) await document.exitFullscreen();
-    else await document.documentElement.requestFullscreen();
-  } catch { notify('Use your browser’s full-screen command on this device.'); }
-};
-function openScienceNotes() { byId('science-model').open = true; }
-byId('sheet').onclick = openScienceNotes;
-byId('science-link').onclick = openScienceNotes;
+const fieldDialogs = [byId('missions-dialog'), byId('science-model')];
+function fieldDialogOpen() { return fieldDialogs.some(dialog => dialog.open); }
+function showFieldDialog(dialog) {
+  clearControls();
+  dialog.showModal();
+}
+byId('missions-button').onclick = () => showFieldDialog(fieldDialogs[0]);
+byId('science-link').onclick = () => showFieldDialog(fieldDialogs[1]);
+byId('practice').onchange = () => saveTools?.saveNow();
+for (const dialog of fieldDialogs) {
+  dialog.querySelector('.dialog-close').onclick = () => dialog.close();
+  dialog.addEventListener('close', () => {
+    clearControls();
+    if (mode === 'play') canvas.focus({ preventScroll: true });
+  });
+}
 window.addEventListener('keydown', event => {
   if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (progressDialogOpen || fieldDialogOpen()) return;
   const k = event.key.toLowerCase();
   if (['escape', 'p'].includes(k) && ['play', 'pause'].includes(mode)) {
     event.preventDefault();
@@ -674,17 +760,19 @@ byId('boost-touch').onclick = dash;
 byId('use-touch').onclick = useSpecialty;
 function setPointer(event) {
   const box = canvas.getBoundingClientRect();
-  pointer = { x: (event.clientX - box.left) * viewWidth / box.width + camera,
+  pointer = { id: event.pointerId, x: (event.clientX - box.left) * viewWidth / box.width + camera,
     y: (event.clientY - box.top) * world.height / box.height };
 }
 canvas.addEventListener('pointerdown', event => {
-  if (mode !== 'play') return;
+  if (mode !== 'play' || pointer) return;
+  event.preventDefault();
+  canvas.focus({ preventScroll: true });
   canvas.setPointerCapture(event.pointerId);
   setPointer(event);
 });
-canvas.addEventListener('pointermove', event => { if (pointer && canvas.hasPointerCapture(event.pointerId)) setPointer(event); });
+canvas.addEventListener('pointermove', event => { if (pointer?.id === event.pointerId) setPointer(event); });
 for (const name of ['pointerup', 'pointercancel', 'lostpointercapture']) {
-  canvas.addEventListener(name, () => { pointer = null; });
+  canvas.addEventListener(name, event => { if (pointer?.id === event.pointerId) pointer = null; });
 }
 window.addEventListener('resize', resize);
 new ResizeObserver(resize).observe(canvas);
@@ -693,4 +781,16 @@ const requested = new URLSearchParams(location.search).get('mission');
 const selected = missions.findIndex(m => m.id === requested);
 openCourse(Math.max(0, selected));
 resize();
+saveTools = window.GameSave.attach({
+  game: 'cellcraft-differentiation-lab',
+  title: 'CellCraft',
+  mount: byId('game-tools'),
+  snapshot,
+  restore,
+  onOpenChange(open) {
+    progressDialogOpen = open;
+    clearControls();
+    if (!open && mode === 'play') canvas.focus({ preventScroll: true });
+  },
+});
 requestAnimationFrame(loop);

@@ -2,63 +2,76 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101c28">
 <meta name="description" content="An action game about cell differentiation for middle-school life science.">
 <title>CellCraft · Differentiation Lab</title>
 <link rel="stylesheet" href="field.css">
 <script src="field-data.js" defer></script>
+<script src="game-save.js" defer></script>
 <script src="field.js" defer></script>
 </head>
 <body>
-<a class="skip" href="#game">Skip to game</a>
+<a class="skip" href="#world">Skip to game</a>
 <header class="topbar"><div class="wrap bar">
   <a class="brand" href="./"><span class="brand-mark" aria-hidden="true"></span><span><b>CellCraft</b><small>Differentiation Lab</small></span></a>
-  <nav aria-label="Activities"><a href="micro-missions.html">Micro Missions</a><a href="#science-model" id="science-link">Science notes</a></nav>
+  <nav aria-label="Game tools">
+    <button id="missions-button" type="button" aria-haspopup="dialog">Missions</button>
+    <button id="science-link" type="button" aria-haspopup="dialog">Science</button>
+    <div id="game-tools"></div>
+  </nav>
 </div></header>
-<main class="wrap" id="game">
-  <div class="title-row"><div><h1>Differentiation Expedition</h1><p class="subtitle">Guide a developing cell through six missions. See how specialized structures help it do its job.</p></div>
-  <label class="practice"><input type="checkbox" id="practice"> Practice mode <small>Hazards do no damage</small></label></div>
-  <div class="game-grid">
-    <section class="arena" aria-labelledby="course">
-      <div class="arena-top">
-        <div><p class="eyebrow" id="domain"></p><h2 id="course"></h2></div>
-        <div class="top-actions"><button id="pause" type="button" aria-label="Pause">Ⅱ</button><button id="restart" type="button" aria-label="Restart mission" title="Restart mission">↻</button><button id="fullscreen" type="button" aria-label="Fullscreen" title="Fullscreen">⛶</button></div>
+<main class="wrap game-grid" id="game">
+  <h1 class="visually-hidden">CellCraft Differentiation Expedition</h1>
+  <section class="arena" aria-labelledby="course">
+    <div class="arena-top">
+      <div><p class="eyebrow" id="domain"></p><h2 id="course"></h2></div>
+      <p class="compact-hint" id="compact-hint"></p>
+      <div class="top-actions"><button id="pause" type="button" aria-label="Pause" title="Pause or resume">Ⅱ</button><button id="restart" type="button" aria-label="Restart mission" title="Restart mission">↻</button></div>
+    </div>
+    <div class="dish">
+      <canvas id="world" tabindex="0" aria-label="Cell expedition playfield. Drag on the field or use arrows to swim, Space to dash, E to use your specialty."></canvas>
+      <div class="hud">
+        <div><span class="hud-label">Health</span><div class="health" id="health" aria-label="Health"></div></div>
+        <div><span class="hud-label">Dash</span><div class="dash"><i id="dash-meter"></i></div></div>
+        <div class="hud-stage"><span class="hud-label">Cell</span><b id="form"></b></div>
       </div>
-      <div class="dish"><canvas id="world" tabindex="0" aria-label="Cell expedition playfield. Use arrows to swim, Space to dash, E to use your specialty."></canvas>
-        <div class="hud">
-          <div><span class="hud-label">Health</span><div class="health" id="health" aria-label="Health"></div></div>
-          <div><span class="hud-label">Dash</span><div class="dash"><i id="dash-meter"></i></div></div>
-          <div class="hud-stage"><span class="hud-label">Cell</span><b id="form"></b></div>
-        </div>
-        <div class="toast" id="toast" role="status" aria-live="polite"></div>
-        <div class="cover" id="cover"><div id="cover-content"></div></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="cover" id="cover"><div id="cover-content"></div></div>
+    </div>
+    <div class="game-dock">
+      <div class="d-pad" role="group" aria-label="Touch movement">
+        <button type="button" data-dir="up" aria-label="Swim up">↑</button>
+        <button type="button" data-dir="left" aria-label="Swim left">←</button>
+        <button type="button" data-dir="down" aria-label="Swim down">↓</button>
+        <button type="button" data-dir="right" aria-label="Swim right">→</button>
       </div>
-      <div class="touch" aria-label="Touch controls">
-        <div class="d-pad" role="group" aria-label="Swim">
-          <button type="button" data-dir="up" aria-label="Swim up">↑</button><button type="button" data-dir="left" aria-label="Swim left">←</button><button type="button" data-dir="down" aria-label="Swim down">↓</button><button type="button" data-dir="right" aria-label="Swim right">→</button>
-        </div><div class="touch-actions"><button type="button" id="boost-touch">Dash</button><button type="button" id="use-touch">Use</button></div>
-      </div>
-      <div class="key-line"><span><kbd>WASD</kbd> or <kbd>↑ ← ↓ →</kbd> Swim</span><span><kbd>Space</kbd> Dash</span><span><kbd>E</kbd> Use specialty</span><span><kbd>Esc</kbd> Pause</span></div>
-    </section>
-    <aside class="mission" aria-label="Mission details">
-      <p class="eyebrow">Mission tracker</p>
-      <h2 id="specialist"></h2>
-      <p class="mission-copy" id="summary"></p>
-      <ol id="goals"></ol>
-      <p class="hint" id="hint"></p>
-      <a id="sheet" href="#science-model">Read the model notes <span aria-hidden="true">↓</span></a>
-    </aside>
-  </div>
-  <section class="milestones" aria-labelledby="mission-list-title">
-    <div class="mission-heading"><h2 id="mission-list-title">Missions</h2><span id="progress"></span></div>
-    <div id="mission-list"></div>
+      <div class="key-line"><span>Drag or <kbd>WASD</kbd> to swim</span><span><kbd>Space</kbd> Dash</span><span><kbd>E</kbd> Use</span><span><kbd>Esc</kbd> Pause</span></div>
+      <div class="touch-actions"><button type="button" id="boost-touch">Dash</button><button type="button" id="use-touch">Use</button></div>
+    </div>
   </section>
-  <details class="model" id="science-model"><summary>How to read the model</summary>
-    <p>Each mission begins with a different kind of precursor. The purple signal and two gene-activity markers stand for parts of a real developmental process. A developing cell responds to signals, and patterns of gene activity help it build structures that suit its job.</p>
-    <p>Swimming, health, dashes and drifting obstacles are game mechanics. Real cells develop over time in their tissues. Most cells in one organism contain the same DNA and use different parts of it. In a real muscle, developing cells fuse to form a skeletal muscle fiber.</p>
-    <p><a href="https://stemcells.nih.gov/info/basics/stc-basics">NIH Stem Cell Basics</a> · <a href="https://www.genome.gov/about-genomics/fact-sheets/Epigenomics-Fact-Sheet">NHGRI Epigenomics</a></p>
-  </details>
+  <aside class="mission" aria-label="Mission details">
+    <p class="eyebrow">Mission tracker</p>
+    <h2 id="specialist"></h2>
+    <p class="mission-copy" id="summary"></p>
+    <ol id="goals"></ol>
+    <p class="hint" id="hint"></p>
+  </aside>
 </main>
+<dialog class="field-dialog" id="missions-dialog" aria-labelledby="mission-list-title">
+  <div class="dialog-heading"><h2 id="mission-list-title">Choose a mission</h2><button class="dialog-close" type="button" aria-label="Close missions">×</button></div>
+  <p id="progress" class="dialog-progress"></p>
+  <div id="mission-list"></div>
+  <div class="mission-settings">
+    <label class="practice"><input type="checkbox" id="practice"> Practice mode <small>Hazards do no damage</small></label>
+    <a href="micro-missions.html">Original Micro Missions ↗</a>
+  </div>
+</dialog>
+<dialog class="field-dialog model" id="science-model" aria-labelledby="science-title">
+  <div class="dialog-heading"><h2 id="science-title">How to read the model</h2><button class="dialog-close" type="button" aria-label="Close science notes">×</button></div>
+  <p>Each mission begins with a different kind of precursor. The purple signal and two gene-activity markers stand for parts of development. A developing cell responds to signals, and patterns of gene activity help it build structures suited to its job.</p>
+  <p>Swimming, health, dashes and drifting obstacles are game mechanics. Real cells develop over time in tissues. Most cells in one organism contain the same DNA and use different parts of it. In a real muscle, developing cells fuse to form a skeletal muscle fiber.</p>
+  <p><a href="https://stemcells.nih.gov/info/basics/stc-basics">NIH Stem Cell Basics</a> · <a href="https://www.genome.gov/about-genomics/fact-sheets/Epigenomics-Fact-Sheet">NHGRI Epigenomics</a></p>
+</dialog>
 </body>
 </html>
